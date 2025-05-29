@@ -15,21 +15,21 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Define schemas
 const ProductSchema = new mongoose.Schema({
-  name: String,
-  price: Number,
-  rollno: String,
-  collgename: String,
-  googledrivelink: String,
-  description: String,
-  dept: String,
-  phoneno: String
+  name: {type:String,required:true},
+  price: {type:Number,required:true},
+  rollno: {type:String,required:true},
+  collgename: {type:String,required:true},
+  googledrivelink: {type:String,required:true}, 
+  description: {type:String,required:true},
+  dept: {type:String,required:true},
+  phoneno: {type:String,required:true}
 });
 
 const userSchema = new mongoose.Schema({
-  name: String,
+  name: {type:String,required:true},
   email: { type: String, unique: true },
-  password: String,
-  Products: { type: [ProductSchema], default: [] }
+  password: {type:String,required:true},
+  Products: { type: [ProductSchema], default: [],required: true }
 });
 
 const Reco = mongoose.model("Reco", userSchema);
