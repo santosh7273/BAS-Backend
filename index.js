@@ -150,32 +150,32 @@ app.get("/mylistings", authenticate, async (req, res) => {
 
 // Get single product by ID (user's product)
 app.get("/mylistings/:id", authenticate, async (req, res) => {
-  try {
-    const user = await Reco.findById(req.user.id);
-    const product = user.Products.id(req.params.id);
-    if (!product) return res.status(404).send("Product not found");
-    return res.json(product);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send("Server Error");
-  }
+  const user = await Reco.findById(req.user.id);
+  if (!user) return res.status(404).send("User not found");
+  const product = user.Products.id(req.params.id);
+  if (!product) return res.status(404).send("Product not found");
+  return res.json(product);
 });
 
-// Update product by ID (user's product)
+// Update product by ID
 app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
-  try {
-    const user = await Reco.findById(req.user.id);
-    const product = user.Products.id(req.params.id);
-    if (!product) return res.status(404).send("Product not found");
+  const user = await Reco.findById(req.user.id);
+  if (!user) return res.status(404).send("User not found");
+  const product = user.Products.id(req.params.id);
+  if (!product) return res.status(404).send("Product not found");
 
-    Object.assign(product, req.body);
-    await user.save();
+  const allowedFields = [
+    "name", "price", "rollno", "collegename", "googledrivelink",
+    "description", "dept", "phoneno"
+  ];
+  allowedFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      product[field] = req.body[field];
+    }
+  });
 
-    return res.json({ message: "Product updated successfully", product });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send("Server Error");
-  }
+  await user.save();
+  return res.json({ message: "Product updated successfully", product });
 });
 app.delete("/mylistings/delete", authenticate, async (req, res) => {
   try {
