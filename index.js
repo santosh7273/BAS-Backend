@@ -154,7 +154,7 @@ app.get("/mylistings/:id", authenticate, async (req, res) => {
     const product = user.Products.id(req.params.id);
     if (!product) return res.status(404).send("Product not found");
 
-    console.log(product.collegename);
+    console.log("product.collegename");
     return res.json(product);
   } catch (err) {
     console.error(err);
