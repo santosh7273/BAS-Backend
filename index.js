@@ -157,7 +157,6 @@ app.get("/mylistings/:id", authenticate, async (req, res) => {
   try {
     const user = await Reco.findById(req.user.id);
     if (!user) return res.status(404).send("User not found");
-
     const product = user.Products.id(req.params.id);
     if (!product) return res.status(404).send("Product not found");
 
@@ -173,22 +172,38 @@ app.get("/mylistings/:id", authenticate, async (req, res) => {
 app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
   try {
     const user = await Reco.findById(req.user.id);
-    if (!user) return res.status(404).send("User not found");
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const product = user.Products.id(req.params.id);
-    if (!product) return res.status(404).send("Product not found");
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    // Update product fields manually
-    Object.keys(req.body).forEach((key) => {
-      product[key] = req.body[key];
-    });
+    // Explicitly update fields expected from frontend
+    const {
+      name,
+      price,
+      rollno,
+      collegename,
+      googledrivelink,
+      description,
+      dept,
+      phoneno
+    } = req.body;
+
+    product.name = name ?? product.name;
+    product.price = price ?? product.price;
+    product.rollno = rollno ?? product.rollno;
+    product.collegename = collegename ?? product.collegename;
+    product.googledrivelink = googledrivelink ?? product.googledrivelink;
+    product.description = description ?? product.description;
+    product.dept = dept ?? product.dept;
+    product.phoneno = phoneno ?? product.phoneno;
 
     await user.save();
 
     return res.json({ message: "Product updated successfully", product });
   } catch (err) {
-    console.error(err);
-    return res.status(500).send("Server Error");
+    console.error("Error updating product:", err);
+    return res.status(500).json({ message: "Server Error" });
   }
 });
 
