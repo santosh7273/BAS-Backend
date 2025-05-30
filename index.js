@@ -178,23 +178,20 @@ app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
     const product = user.Products.id(req.params.id);
     if (!product) return res.status(404).send("Product not found");
 
-    const allowedFields = [
-      "name", "price", "rollno", "collegename",
-      "googledrivelink", "description", "dept", "phoneno"
-    ];
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        product[field] = field === 'price' ? Number(req.body[field]) : req.body[field];
-      }
+    // Update product fields manually
+    Object.keys(req.body).forEach((key) => {
+      product[key] = req.body[key];
     });
 
     await user.save();
+
     return res.json({ message: "Product updated successfully", product });
   } catch (err) {
     console.error(err);
     return res.status(500).send("Server Error");
   }
 });
+
 
 
 // Delete product
