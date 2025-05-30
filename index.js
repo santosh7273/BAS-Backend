@@ -149,25 +149,32 @@ app.get("/mylistings", authenticate, async (req, res) => {
 
 
 // Get single product by ID (user's product)
+// Get a single product from the user's listings by product ID
 app.get("/mylistings/:id", authenticate, async (req, res) => {
   const user = await Reco.findById(req.user.id);
   if (!user) return res.status(404).send("User not found");
+
   const product = user.Products.id(req.params.id);
   if (!product) return res.status(404).send("Product not found");
+
   return res.json(product);
 });
 
-// Update product by ID
+// Update a product by product ID
 app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
   const user = await Reco.findById(req.user.id);
   if (!user) return res.status(404).send("User not found");
+
   const product = user.Products.id(req.params.id);
   if (!product) return res.status(404).send("Product not found");
 
+  // Allowed fields to update
   const allowedFields = [
-    "name", "price", "rollno", "collegename", "googledrivelink",
-    "description", "dept", "phoneno"
+    "name", "price", "rollno", "collegename", 
+    "googledrivelink", "description", "dept", "phoneno"
   ];
+
+  // Update only allowed fields if provided in the request body
   allowedFields.forEach(field => {
     if (req.body[field] !== undefined) {
       product[field] = req.body[field];
@@ -175,6 +182,7 @@ app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
   });
 
   await user.save();
+
   return res.json({ message: "Product updated successfully", product });
 });
 app.delete("/mylistings/delete", authenticate, async (req, res) => {
