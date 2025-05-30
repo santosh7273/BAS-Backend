@@ -1,4 +1,3 @@
-// ✅ Your request is to correct and improve the current backend logic WITHOUT bcrypt
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -9,34 +8,35 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Successfully connected to MongoDB"))
   .catch(err => console.error("MongoDB connection error:", err));
 
 // Define schemas
 const ProductSchema = new mongoose.Schema({
-  name: {type:String,required:true},
-  price: {type:Number,required:true},
-  rollno: {type:String,required:true},
-  collegename: {type:String,required:true},
-  googledrivelink: {type:String,required:true}, 
-  description: {type:String,required:true},
-  dept: {type:String,required:true},
-  phoneno: {type:String,required:true}
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  rollno: { type: String, required: true },
+  collegename: { type: String, required: true },
+  googledrivelink: { type: String, required: true },
+  description: { type: String, required: true },
+  dept: { type: String, required: true },
+  phoneno: { type: String, required: true }
 });
 
 const userSchema = new mongoose.Schema({
-  name: {type:String,required:true},
+  name: { type: String, required: true },
   email: { type: String, unique: true },
-  password: {type:String,required:true},
-  Products: { type: [ProductSchema], default: [],required: true }
+  password: { type: String, required: true },
+  Products: { type: [ProductSchema], default: [], required: true }
 });
 
 const Reco = mongoose.model("Reco", userSchema);
 
 // Auth middleware
 const authenticate = (req, res, next) => {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization; // no Bearer used
   if (!token) return res.status(401).send("Access denied, no token provided");
 
   try {
@@ -85,6 +85,7 @@ app.post("/updatepassword", async (req, res) => {
     const { email, password } = req.body;
     const user = await Reco.findOne({ email });
     if (!user) return res.status(400).send("User does not exist");
+
     user.password = password;
     await user.save();
     return res.status(200).send("Password updated successfully and redirecting you to login...");
@@ -126,15 +127,12 @@ app.post("/sellproduct", authenticate, async (req, res) => {
   }
 });
 
-// Get All Products
-
 // My Listings
 app.get("/mylistings", authenticate, async (req, res) => {
   try {
     const user = await Reco.findById(req.user.id);
     if (!user) return res.status(404).send("User not found");
 
-    // Add email field to each product
     const productsWithEmail = user.Products.map(product => ({
       ...product.toObject(),
       email: user.email
@@ -147,43 +145,52 @@ app.get("/mylistings", authenticate, async (req, res) => {
   }
 });
 
-
-// Get single product by ID (user's product)
-// Get a single product from the user's listings by product ID
+// Get single product by ID
 app.get("/mylistings/:id", authenticate, async (req, res) => {
-  const user = await Reco.findById(req.user.id);
-  if (!user) return res.status(404).send("User not found");
+  try {
+    const user = await Reco.findById(req.user.id);
+    if (!user) return res.status(404).send("User not found");
 
-  const product = user.Products.id(req.params.id);
-  if (!product) return res.status(404).send("Product not found");
-  console.log(product.collgename)
-  return res.json(product);
+    const product = user.Products.id(req.params.id);
+    if (!product) return res.status(404).send("Product not found");
+
+    console.log(product.collegename);
+    return res.json(product);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Server Error");
+  }
 });
 
-// Update a product by product ID
+// Update product
 app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
-  const user = await Reco.findById(req.user.id);
-  if (!user) return res.status(404).send("User not found");
+  try {
+    const user = await Reco.findById(req.user.id);
+    if (!user) return res.status(404).send("User not found");
 
-  const product = user.Products.id(req.params.id);
-  if (!product) return res.status(404).send("Product not found");
+    const product = user.Products.id(req.params.id);
+    if (!product) return res.status(404).send("Product not found");
 
-  // Allowed fields to update
-  const allowedFields = [
-    "name", "price", "rollno", "collegename", 
-    "googledrivelink", "description", "dept", "phoneno"
-  ];
-  // Update only allowed fields if provided in the request body
-  allowedFields.forEach(field => {
-    if (req.body[field] !== undefined) {
-      product[field] = req.body[field];
-    }
-  });
+    const allowedFields = [
+      "name", "price", "rollno", "collegename",
+      "googledrivelink", "description", "dept", "phoneno"
+    ];
 
-  await user.save();
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        product[field] = req.body[field];
+      }
+    });
 
-  return res.json({ message: "Product updated successfully", product });
+    await user.save();
+    return res.json({ message: "Product updated successfully", product });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Server Error");
+  }
 });
+
+// Delete product
 app.delete("/mylistings/delete", authenticate, async (req, res) => {
   try {
     const { productId, password } = req.body;
@@ -193,23 +200,18 @@ app.delete("/mylistings/delete", authenticate, async (req, res) => {
     }
 
     const user = await Reco.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.password !== password) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    // Find the index of the product to remove
     const productIndex = user.Products.findIndex(p => p._id.toString() === productId);
     if (productIndex === -1) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Remove product by index
     user.Products.splice(productIndex, 1);
-
     await user.save();
 
     return res.status(200).json({ message: "Product deleted successfully" });
@@ -218,27 +220,31 @@ app.delete("/mylistings/delete", authenticate, async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 });
-// Get All Products or Search by Name
+
+// Get all products (with optional search)
 app.get("/products", authenticate, async (req, res) => {
   try {
     const { name } = req.query;
     const users = await Reco.find({}, ["Products", "email"]);
+
     let allProducts = users.flatMap(user =>
       user.Products.map(p => ({ ...p.toObject(), email: user.email }))
     );
 
-    // If name query param is provided, filter the products
     if (name) {
       const searchTerm = name.toLowerCase();
       allProducts = allProducts.filter(product =>
         product.name?.toLowerCase().includes(searchTerm)
       );
     }
+
     return res.status(200).json(allProducts);
   } catch (err) {
     console.error(err);
     return res.status(500).send("Server Error");
   }
 });
+
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
