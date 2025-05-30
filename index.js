@@ -156,7 +156,7 @@ app.get("/mylistings/:id", authenticate, async (req, res) => {
 
   const product = user.Products.id(req.params.id);
   if (!product) return res.status(404).send("Product not found");
-
+  console.log(product.collgename)
   return res.json(product);
 });
 
@@ -173,7 +173,6 @@ app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
     "name", "price", "rollno", "collegename", 
     "googledrivelink", "description", "dept", "phoneno"
   ];
-
   // Update only allowed fields if provided in the request body
   allowedFields.forEach(field => {
     if (req.body[field] !== undefined) {
