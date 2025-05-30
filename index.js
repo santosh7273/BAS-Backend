@@ -11,7 +11,6 @@ app.use(express.json());
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Successfully connected to MongoDB"))
   .catch(err => console.error("MongoDB connection error:", err));
-
 // Define schemas
 const ProductSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -23,16 +22,13 @@ const ProductSchema = new mongoose.Schema({
   dept: { type: String, required: true },
   phoneno: { type: String, required: true }
 });
-
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, unique: true },
   password: { type: String, required: true },
   Products: { type: [ProductSchema], default: [], required: true }
 });
-
 const Reco = mongoose.model("Reco", userSchema);
-
 // Auth middleware
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization; // no Bearer used
@@ -186,10 +182,9 @@ app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
       "name", "price", "rollno", "collegename",
       "googledrivelink", "description", "dept", "phoneno"
     ];
-
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
-        product[field] = req.body[field];
+        product[field] = field === 'price' ? Number(req.body[field]) : req.body[field];
       }
     });
 
@@ -200,6 +195,7 @@ app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
     return res.status(500).send("Server Error");
   }
 });
+
 
 // Delete product
 app.delete("/mylistings/delete", authenticate, async (req, res) => {
