@@ -114,6 +114,17 @@ app.get("/", (req, res) => {
 // Sell Product
 app.post("/sellproduct", authenticate, async (req, res) => {
   try {
+    const requiredFields = [
+      "name", "price", "rollno", "collegename",
+      "googledrivelink", "description", "dept", "phoneno"
+    ];
+
+    for (let field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({ message: `${field} is required` });
+      }
+    }
+
     const user = await Reco.findById(req.user.id);
     if (!user) return res.status(404).send("User not found");
 
@@ -125,6 +136,7 @@ app.post("/sellproduct", authenticate, async (req, res) => {
     return res.status(500).send("Server Error");
   }
 });
+
 
 // My Listings
 app.get("/mylistings", authenticate, async (req, res) => {
