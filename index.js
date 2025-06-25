@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const app = express();
+const bcrypt=require("bcryptjs");
 app.use(cors());
 app.use(express.json());
 //hello world
@@ -49,8 +50,9 @@ app.post("/register", async (req, res) => {
     const { name, email, password } = req.body;
     const exist = await Reco.findOne({ email });
     if (exist) return res.status(400).send("User already exists");
-
-    const newUser = new Reco({ name, email, password });
+    let salt=await bcrypt.genSalt(10);
+    let hashedPassword=await bcrypt.hash(password,salt);
+    const newUser = new Reco({ name, email, password: hashedPassword });
     await newUser.save();
     return res.status(201).send("User registered successfully");
   } catch (err) {
@@ -63,10 +65,19 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await Reco.findOne({ email });
-    if (!user || user.password !== password) return res.status(400).send("Invalid credentials");
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const user = await Reco.findOne({ email });
+    if (!user) return res.status(400).send("Invalid credentials");
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).send("Invalid credentials");
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     return res.status(200).json({ token });
   } catch (err) {
     console.error(err);
