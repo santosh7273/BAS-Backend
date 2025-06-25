@@ -228,14 +228,12 @@ app.delete("/mylistings/delete", authenticate, async (req, res) => {
     if (!productId || !password) {
       return res.status(400).json({ message: "Product ID and password are required" });
     }
-
     const user = await Reco.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (user.password !== password) {
+    let result=await bcrypt.compare(password, user.password);
+    if (!result) {
       return res.status(401).json({ message: "Invalid password" });
     }
-
     const productIndex = user.Products.findIndex(p => p._id.toString() === productId);
     if (productIndex === -1) {
       return res.status(404).json({ message: "Product not found" });
