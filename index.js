@@ -336,7 +336,7 @@ app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
   }
 });
 
-app.delete("/mylistings/deleteproduct/", authenticate, async (req, res) => {
+app.delete("/mylistings/deleteproduct", authenticate, async (req, res) => {
   try {
     const { password,productId } = req.body;
     const user = await Reco.findById(req.user.id);
