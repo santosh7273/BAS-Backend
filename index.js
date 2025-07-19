@@ -336,19 +336,31 @@ app.put("/mylistings/updateproduct/:id", authenticate, async (req, res) => {
   }
 });
 
-app.delete("/mylistings/deleteproduct", authenticate, async (req, res) => {
+app.delete("/mylistings/deleteproduct/:productId", authenticate, async (req, res) => {
   try {
-    const { password,productId } = req.body;
+    const { password } = req.body;
+    const { productId } = req.params;
     const user = await Reco.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Invalid password" });
+
+    // Find the product within the user's products array
     const product = user.Products.id(productId);
+
     if (!product) return res.status(404).json({ message: "Product not found" });
-    product.remove();
+
+    // --- CORRECTED LINE ---
+    // Option 1: Using pull (recommended for removing by ID or object)
+    user.Products.pull(productId); // Or user.Products.pull(product._id); or user.Products.pull(product);
+
+    // Option 2: Filtering the array (another valid approach)
+    // user.Products = user.Products.filter(p => p._id.toString() !== productId);
+    // --- END CORRECTED LINE ---
+
     await user.save();
-    
+
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {
     console.error(err);
