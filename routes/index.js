@@ -12,7 +12,7 @@ router.get("/admin_profile", AdminAuthenticate, AdminProfile);
 router.get("/profile", authenticate, Userprofile);
 router.post("/register", register);
 router.post("/login", login);
-router.post("updatepassword",updatepassword);
+router.post("/updatepassword",updatepassword);
 router.get("/products",authenticate,getallproducts)
 router.post("/sellproduct", authenticate, sellproduct);
 router.get("/mylistings", authenticate, mylistings);
