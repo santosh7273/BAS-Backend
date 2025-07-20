@@ -4,7 +4,7 @@ require('../controllers/userController');
 const {AdminLogin,productstobeapproved,ApproveProduct,rejectproduct,AdminProfile}= require('../controllers/adminController');
 const { Router } = require('express');
 const router = Router();
-router.post("//admin_login", AdminAuthenticate, AdminLogin);
+router.post("/admin_login", AdminAuthenticate, AdminLogin);
 router.get("/productstobeapproved", AdminAuthenticate, productstobeapproved);
 router.post("/approveproduct/:id", AdminAuthenticate, ApproveProduct);
 router.post("/rejectproduct/:id", AdminAuthenticate, rejectproduct);
