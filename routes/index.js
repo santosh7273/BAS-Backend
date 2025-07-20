@@ -6,13 +6,13 @@ const { Router } = require('express');
 const router = Router();
 router.post("/admin_login", AdminLogin);
 router.get("/productstobeapproved", AdminAuthenticate, productstobeapproved);
-router.post("/approveproduct/:id", AdminAuthenticate, ApproveProduct);
-router.post("/rejectproduct/:id", AdminAuthenticate, rejectproduct);
+router.put("/approveproduct/:id", AdminAuthenticate, ApproveProduct);
+router.put("/rejectproduct/:id", AdminAuthenticate, rejectproduct);
 router.get("/admin_profile", AdminAuthenticate, AdminProfile);
 router.get("/profile", authenticate, Userprofile);
 router.post("/register", register);
 router.post("/login", login);
-router.post("/updatepassword",updatepassword);
+router.put("/updatepassword",updatepassword);
 router.get("/products",authenticate,getallproducts)
 router.post("/sellproduct", authenticate, sellproduct);
 router.get("/mylistings", authenticate, mylistings);
