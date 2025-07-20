@@ -41,7 +41,6 @@ const ApproveProduct=async(req,res)=>{
     const { email } = req.body;
     const user = await Reco.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
-
     const product = user.Products.id(id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
